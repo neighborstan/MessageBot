@@ -7,12 +7,15 @@ import art.evalevi.telegrambot.messagebot.event.SendMessageEvent;
 import art.evalevi.telegrambot.messagebot.mapper.ChatMapper;
 import art.evalevi.telegrambot.messagebot.mapper.ChatMessageMapper;
 import art.evalevi.telegrambot.messagebot.model.ChatMessage;
+import art.evalevi.telegrambot.messagebot.model.MessageStatus;
 import art.evalevi.telegrambot.messagebot.model.MessageType;
 import art.evalevi.telegrambot.messagebot.service.ChatService;
 import art.evalevi.telegrambot.messagebot.service.MessageService;
 import art.evalevi.telegrambot.messagebot.service.SendMessageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -21,13 +24,23 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.EnumMap;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * The class that describes the bot
  */
 @Component
 public class MessageBot extends TelegramLongPollingBot {
+
+    public static final String DATETIME_FORMAT = "dd-MM-yy HH:mm";
+    public static final String CURRENT_TIMEZONE = "Europe/Moscow";
 
     @Value("${telegram.bot.username}")
     private String username;
@@ -77,6 +90,20 @@ public class MessageBot extends TelegramLongPollingBot {
     }
 
     /**
+     * Method for scheduled message sending
+     * Called every 20 seconds
+     */
+    @Scheduled(cron = "*/20 * * * * *")
+    @Async
+    public void sendTimedMessages() {
+
+        LocalDateTime currentTime = getCurrentTimeTruncatedToMinutes();
+
+        List<ChatMessage> chatMessages = messageService.findAllByScheduledTime(currentTime);
+        chatMessages.forEach(this::processChatMessage);
+    }
+
+    /**
      * Method that returns the name of the bot specified during registration
      *
      * @return bot name
@@ -94,6 +121,28 @@ public class MessageBot extends TelegramLongPollingBot {
     @EventListener
     public void handleSendMessageEvent(SendMessageEvent event) {
         sendBotMessage(event.getChatId(), event.getText());
+    }
+
+    private LocalDateTime getCurrentTimeTruncatedToMinutes() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATETIME_FORMAT);
+        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of(CURRENT_TIMEZONE)).truncatedTo(ChronoUnit.MINUTES);
+        zonedDateTime.format(formatter);
+        return zonedDateTime.toLocalDateTime();
+    }
+
+    private void processChatMessage(ChatMessage chatMessage) {
+        Optional<ChatMessage> chatMessageOptional =
+                messageService.findByChatIdAndTypeAndStatus(chatMessage.getChatId(), MessageType.SCHEDULED, MessageStatus.AWAIT);
+
+        if (chatMessageOptional.isPresent()) {
+            updateChatMessageStatus(chatMessageOptional.get());
+            sendBotMessage(chatMessage.getChatId(), chatMessageOptional.get().getText());
+        }
+    }
+
+    private void updateChatMessageStatus(ChatMessage chatMessage) {
+        chatMessage.setStatus(MessageStatus.DONE);
+        messageService.saveMessage(chatMessage);
     }
 
     private void sendBotMessage(Long chatId, String text) {
