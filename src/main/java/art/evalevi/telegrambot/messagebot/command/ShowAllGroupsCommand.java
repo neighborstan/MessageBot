@@ -9,7 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
  */
 public class ShowAllGroupsCommand extends AdminCommand {
 
-    public static final String ACTUAL_GROUPS_TITLES = "Актуальные группы:\n";
+    public static final String ACTUAL_GROUPS_TITLES = "Actual Groups:\n";
 
     private final ChatService chatService;
     private final SendMessageService sendMessageService;

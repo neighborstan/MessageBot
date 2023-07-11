@@ -9,19 +9,19 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 public class ShowInfoCommand extends AdminCommand {
 
     public static final String HELP_INFO_MSG = """
-            Шаблоны команд для редактирования:
-            - приветственного сообщения
-            <code>/welcomemsg [ID группы] [Новое сообщение]</code>
+            Command templates for editing:
+            - welcome message
+            <code>/welcomemsg [group ID] [New message]</code>
                         
-            - запланированного сообщения
-            <code>/plannedmsg [ID группы] [Новое сообщение]</code>
+            - scheduled message
+            <code>/plannedmsg [group ID] [New message]</code>
                         
-            - запланированного времени
-            <code>/scheduledtime [ID группы] [ДД-ММ-ГГ чч:мм]</code>
+            - scheduled time
+            <code>/scheduledtime [group ID] [DD-MM-YY hh:mm]</code>
                         
             ===== ===== =====
                         
-            Вывести список групп бота:
+            List bot groups:
             <code>/groups</code>
             """;
 
