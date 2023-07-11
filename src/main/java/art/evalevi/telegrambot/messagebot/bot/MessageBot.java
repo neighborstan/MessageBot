@@ -100,7 +100,7 @@ public class MessageBot extends TelegramLongPollingBot {
         LocalDateTime currentTime = getCurrentTimeTruncatedToMinutes();
 
         List<ChatMessage> chatMessages = messageService.findAllByScheduledTime(currentTime);
-        chatMessages.forEach(this::processChatMessage);
+        chatMessages.forEach(this::processScheduledChatMessage);
     }
 
     /**
@@ -130,7 +130,7 @@ public class MessageBot extends TelegramLongPollingBot {
         return zonedDateTime.toLocalDateTime();
     }
 
-    private void processChatMessage(ChatMessage chatMessage) {
+    private void processScheduledChatMessage(ChatMessage chatMessage) {
         Optional<ChatMessage> chatMessageOptional =
                 messageService.findByChatIdAndTypeAndStatus(chatMessage.getChatId(), MessageType.SCHEDULED, MessageStatus.AWAIT);
 
@@ -194,7 +194,7 @@ public class MessageBot extends TelegramLongPollingBot {
                         new ChatMessageDto(
                                 update.getMessage().getChatId(), MessageType.WELCOME, "Привет!", null, null)));
 
-        sendBotMessage(update.getMessage().getChatId(), welcomeChatMessage.getText());
+//        sendBotMessage(update.getMessage().getChatId(), welcomeChatMessage.getText());
 
         sendMessageService.sendMessage(update.getMessage().getChatId(), welcomeChatMessage.getText());
     }
