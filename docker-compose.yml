@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  bot:
+    depends_on:
+      db:
+        condition: service_healthy
+    build:
+      context: .
+    environment:
+      BOT_USERNAME: ${BOT_USERNAME}
+      BOT_TOKEN: ${BOT_TOKEN}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    restart: 'always'
+  #    volumes:
+  #      - /path/to/local/logs/catalog:/var/log/message-bot/logs
+  db:
+    image: postgres:14
+    restart: 'always'
+    environment:
+      POSTGRES_DB: 'messagebot_db'
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    #    volumes:
+    #      - /path/to/local/postgresql:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1s
+      retries: 120
+    ports:
+      - '5432:5432'
