@@ -14,7 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
  */
 public class ChangeTimedMessageCommand extends AdminCommand {
 
-    public static final String DEFAULT_TIMED_MSG = "Привет!";
+    public static final String DEFAULT_TIMED_MSG = "Hello!";
 
     private final MessageService messageService;
     private final SendMessageService sendMessageService;

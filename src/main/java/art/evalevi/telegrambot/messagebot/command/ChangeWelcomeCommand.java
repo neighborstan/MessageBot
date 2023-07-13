@@ -14,7 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
  */
 public class ChangeWelcomeCommand extends AdminCommand {
 
-    public static final String DEFAULT_WELCOME_MSG = "Привет!";
+    public static final String DEFAULT_WELCOME_MSG = "Hello!";
 
     private final MessageService messageService;
     private final SendMessageService sendMessageService;
