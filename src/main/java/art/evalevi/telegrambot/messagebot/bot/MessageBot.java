@@ -120,7 +120,15 @@ public class MessageBot extends TelegramLongPollingBot {
      */
     @EventListener
     public void handleSendMessageEvent(SendMessageEvent event) {
-        sendBotMessage(event.getChatId(), event.getText());
+        SendMessage message = new SendMessage();
+        message.setChatId(event.getChatId());
+        message.setText(event.getText());
+        message.enableHtml(true);
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            // TODO handle an error
+        }
     }
 
     private LocalDateTime getCurrentTimeTruncatedToMinutes() {
@@ -136,25 +144,13 @@ public class MessageBot extends TelegramLongPollingBot {
 
         if (chatMessageOptional.isPresent()) {
             updateChatMessageStatus(chatMessageOptional.get());
-            sendBotMessage(chatMessage.getChatId(), chatMessageOptional.get().getText());
+            sendMessageService.sendMessage(chatMessage.getChatId(), chatMessageOptional.get().getText());
         }
     }
 
     private void updateChatMessageStatus(ChatMessage chatMessage) {
         chatMessage.setStatus(MessageStatus.DONE);
         messageService.saveMessage(chatMessage);
-    }
-
-    private void sendBotMessage(Long chatId, String text) {
-        SendMessage message = new SendMessage();
-        message.setChatId(chatId);
-        message.setText(text);
-        message.enableHtml(true);
-        try {
-            execute(message);
-        } catch (TelegramApiException e) {
-            // TODO handle an error
-        }
     }
 
     private boolean isBotRemovedFromChat(Update update) {
@@ -192,9 +188,7 @@ public class MessageBot extends TelegramLongPollingBot {
         ChatMessage welcomeChatMessage = messageService.findByChatIdAndType(update.getMessage().getChatId(), MessageType.WELCOME)
                 .orElse(ChatMessageMapper.INSTANCE.messageDtoToMessage(
                         new ChatMessageDto(
-                                update.getMessage().getChatId(), MessageType.WELCOME, "Привет!", null, null)));
-
-//        sendBotMessage(update.getMessage().getChatId(), welcomeChatMessage.getText());
+                                update.getMessage().getChatId(), MessageType.WELCOME, "Hello!", null, null)));
 
         sendMessageService.sendMessage(update.getMessage().getChatId(), welcomeChatMessage.getText());
     }
